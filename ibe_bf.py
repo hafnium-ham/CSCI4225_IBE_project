@@ -1,8 +1,6 @@
 from charm.toolbox.pairinggroup import PairingGroup, ZR, G1, GT, pair
 from charm.toolbox.IBEnc import IBEnc
 
-MSG_LEN = 32
-
 
 class BonehFranklinIBE(IBEnc):
     def __init__(self, group):
