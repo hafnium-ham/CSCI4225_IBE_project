@@ -5,7 +5,7 @@ import unittest
 from charm.toolbox.pairinggroup import PairingGroup
 
 from filecrypt import decrypt_file, encrypt_file
-from ibe_bf import MSG_LEN, BonehFranklinIBE
+from ibe_bf import BonehFranklinIBE
 from rsa_baseline import rsa_decrypt_file, rsa_encrypt_file, rsa_keygen
 
 ALICE = "alice@nmsu.edu"
@@ -31,19 +31,21 @@ class Tests(unittest.TestCase):
 
     def test_roundtrip(self):
         sk = self.ibe.extract(self.mk, ALICE)
-        msg = os.urandom(MSG_LEN)
-        ct = self.ibe.encrypt(self.pk, ALICE, msg)
-        self.assertEqual(self.ibe.decrypt(self.pk, sk, ct), msg)
+        for n in (1, 32, 1000, 100000):
+            with self.subTest(n=n):
+                msg = os.urandom(n)
+                ct = self.ibe.encrypt(self.pk, ALICE, msg)
+                self.assertEqual(self.ibe.decrypt(self.pk, sk, ct), msg)
 
     def test_wrong_identity(self):
         sk_bob = self.ibe.extract(self.mk, BOB)
-        ct = self.ibe.encrypt(self.pk, ALICE, os.urandom(MSG_LEN))
+        ct = self.ibe.encrypt(self.pk, ALICE, os.urandom(32))
         self.assertIsNone(self.ibe.decrypt(self.pk, sk_bob, ct))
 
     def test_tampered_ciphertext(self):
         sk = self.ibe.extract(self.mk, ALICE)
-        ct = self.ibe.encrypt(self.pk, ALICE, os.urandom(MSG_LEN))
-        other = self.ibe.encrypt(self.pk, ALICE, os.urandom(MSG_LEN))
+        ct = self.ibe.encrypt(self.pk, ALICE, os.urandom(32))
+        other = self.ibe.encrypt(self.pk, ALICE, os.urandom(32))
         ct["U"] = other["U"]
         self.assertIsNone(self.ibe.decrypt(self.pk, sk, ct))
 
